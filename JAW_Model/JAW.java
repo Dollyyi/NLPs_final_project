@@ -339,28 +339,83 @@ public class JAW {
 
     }
 
-    /**
-     * 
+   /**
+     *  Evalution
      */
-    public Double evaluteModel() {
+    public Double calculatePrecisionRecall(ParseTree tree1, ParseTree tree2) {
         // Get x amount of random words and run generateFromSeedWord on each of those
         // words
+        int matchedNodes = countMatchedNodes(tree1, tree2);
+        int totalNodes1 = countTotalNodes(tree1);
+        int totalNodes2 = countTotalNodes(tree2);
 
-        // Use precision recall to compare the grammar tree gotten from
-        // generateFromSeedWord to the
-        // grammar tree's from our training data and take an average
-        // (Probable will need helper functio nfor precision recall)
-        return 0.0;
+        double precision = (double) matchedNodes / totalNodes1;
+        double recall = (double) matchedNodes / totalNodes2;
+
+        return (2 * precision * recall) / (precision + recall);
+
+
     }
 
-    /**
-     * Calculates the average precision recall between one grammar tree and a list
-     * of grammar trees that have
-     * the same seedPartOfSpeech as that one grammar tree
-     */
-    public Double getPrecisionRecall(ParseTree tree, String seedPartOfSpeech) {
-        return 0.0;
+
+    private int countMatchedNodes(ParseTree tree1, ParseTree tree2) {
+        if (tree1 == null || tree2 == null) {
+            return 0;
+        }
+
+        int count;
+
+        if (tree1.getLabel().equals(tree2.getLabel())) {
+            count = 1;
+        } else {
+            count = 0;
+        }
+
+        for (int i = 0; i < Math.min(tree1.getChildren().size(), tree2.getChildren().size()); i++) {
+            count += countMatchedNodes(tree1.getChildren().get(i), tree2.getChildren().get(i));
+        }
+        
+        return count;
+
+
     }
+
+
+    private int countTotalNodes(ParseTree tree) {
+        if (tree == null) {
+            return 0;
+        }
+        int count = 1;
+
+        for (ParseTree child: tree.getChildren()) {
+            count += countTotalNodes(child);
+        }
+        return count;
+    }
+
+
+
+
+    public void evaluateModel() {
+        // Iterate over the training parse trees
+        for (ParseTree trainingTree : trainingParseTrees) {
+            // Generate a sentence using the seed word from the training tree
+            //String seedWord = getRandomSeedWordFromTree(trainingTree);
+            String generatedSentence = generateFromSeedWord(seedWord);
+    
+            // Print the results
+            System.out.println("Seed Word: " + seedWord);
+            System.out.println("Generated Sentence: " + generatedSentence);
+    
+            // Calculate precision and recall between the generated parse tree and the training parse tree
+            Double precisionRecall = calculatePrecisionRecall(trainingTree, generatedParseTree);
+    
+            // Print precision and recall
+            System.out.println("Precision & Recall: " + precisionRecall);
+            System.out.println("----------------------------------------");
+        }
+    }
+    
 
     /**
      * Cleans a given word
